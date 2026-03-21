@@ -13,16 +13,12 @@ export default function Services() {
           <h2 className="text-3xl md:text-4xl font-bold text-[#0B3C5D]">
             خدماتنا
           </h2>
-      
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {services.map((service, index) => (
+          {services.map((service) => (
             <Card
               key={service.title}
-              data-aos={index % 2 === 0 ? "fade-right" : "fade-left"}
-              data-aos-delay={index * 150}
-              data-aos-offset="120"
               className="rounded-2xl border border-[#D9E2EC] shadow-sm hover:shadow-lg hover:-translate-y-1 transition duration-300 bg-white"
             >
               <CardContent className="p-6 md:p-7">
