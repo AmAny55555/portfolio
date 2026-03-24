@@ -13,7 +13,7 @@ export default function Header() {
   return (
     <header className="w-full pt-3 sm:pt-4">
       <div className="w-full px-3 sm:px-4 md:px-8 lg:px-16 xl:px-24">
-        <div className="bg-blue-200 border border-[#D9E2EC] rounded-xl sm:rounded-2xl shadow-sm">
+        <div className="bg-white border border-[#D9E2EC] rounded-xl sm:rounded-2xl shadow-sm">
 
        
           <div className="h-16 sm:h-20 px-3 sm:px-4 md:px-6 lg:px-8 flex items-center justify-between">
