@@ -1,44 +1,190 @@
 "use client";
+
 import Image from "next/image";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { FiArrowLeft, FiPhoneCall } from "react-icons/fi";
+import { useEffect, useMemo, useState } from "react";
+
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(media.matches);
+
+    const onChange = (e: MediaQueryListEvent) => setReduced(e.matches);
+
+    if (media.addEventListener) {
+      media.addEventListener("change", onChange);
+      return () => media.removeEventListener("change", onChange);
+    }
+
+    media.addListener(onChange);
+    return () => media.removeListener(onChange);
+  }, []);
+
+  return reduced;
+}
 
 export default function Hero() {
-  return (
-    <section id="hero" className="w-full">
-      <div className="w-full px-4 md:px-8 lg:px-16 xl:px-24 mt-10 md:mt-14 lg:mt-16">
-        <div className="relative overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-sm">
+  const content = useMemo(
+    () => ({
+      line1: "المستقبل تك",
+      line2: "للخدمات التكنولوجية المتكاملة",
+      desc: "حلول متكاملة في التكنولوجيا والتسويق الرقمي وصيانة الأجهزة",
+    }),
+    []
+  );
 
+  const prefersReducedMotion = usePrefersReducedMotion();
+
+  const [typedLine1, setTypedLine1] = useState("");
+  const [typedLine2, setTypedLine2] = useState("");
+  const [typedDesc, setTypedDesc] = useState("");
+
+  const [showFirstButton, setShowFirstButton] = useState(false);
+  const [showSecondButton, setShowSecondButton] = useState(false);
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      setTypedLine1(content.line1);
+      setTypedLine2(content.line2);
+      setTypedDesc(content.desc);
+      setShowFirstButton(true);
+      setShowSecondButton(true);
+      return;
+    }
+
+    let cancelled = false;
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+
+    const typeText = (
+      text: string,
+      setter: React.Dispatch<React.SetStateAction<string>>,
+      speed: number
+    ) =>
+      new Promise<void>((resolve) => {
+        let i = 0;
+
+        const run = () => {
+          if (cancelled) return;
+
+          setter(text.slice(0, i + 1));
+          i += 1;
+
+          if (i < text.length) {
+            const id = setTimeout(run, speed);
+            timeouts.push(id);
+          } else {
+            resolve();
+          }
+        };
+
+        const id = setTimeout(run, speed);
+        timeouts.push(id);
+      });
+
+    const startTyping = async () => {
+      await typeText(content.line1, setTypedLine1, 70);
+      await typeText(content.line2, setTypedLine2, 45);
+      await typeText(content.desc, setTypedDesc, 28);
+
+      if (!cancelled) {
+        setShowFirstButton(true);
+
+        const id = setTimeout(() => {
+          if (!cancelled) setShowSecondButton(true);
+        }, 220);
+
+        timeouts.push(id);
+      }
+    };
+
+    startTyping();
+
+    return () => {
+      cancelled = true;
+      timeouts.forEach(clearTimeout);
+    };
+  }, [content, prefersReducedMotion]);
+
+  return (
+    <section id="hero" className="w-full overflow-x-hidden" dir="rtl">
+      <div className="mt-4 w-full px-2 min-[500px]:px-3 md:mt-10 md:px-4 lg:mt-12 lg:px-6 xl:px-8">
+        <div className="relative overflow-hidden rounded-[18px] min-[500px]:rounded-[22px] lg:rounded-[28px] border border-[#E5E7EB] bg-white shadow-[0_14px_40px_rgba(11,60,93,0.08)] min-h-[360px] min-[500px]:min-h-[420px] md:min-h-[500px]">
           <Image
             src="/1.jpg"
-            alt="hero"
+            alt="المستقبل تك"
             fill
+            priority
             className="object-cover opacity-30"
           />
 
-     
-          <div className="absolute top-0 right-0 h-40 w-40 rounded-full bg-[#1DA1F2]/10 blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 h-40 w-40 rounded-full bg-[#FF7A00]/10 blur-3xl pointer-events-none" />
+          <div className="absolute top-0 right-0 h-24 w-24 min-[500px]:h-36 min-[500px]:w-36 md:h-44 md:w-44 rounded-full bg-[#1DA1F2]/10 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 h-24 w-24 min-[500px]:h-36 min-[500px]:w-36 md:h-44 md:w-44 rounded-full bg-[#FF7A00]/10 blur-3xl pointer-events-none" />
 
-     
-          <div className="relative px-6 py-12 md:px-10 md:py-16 lg:px-14 lg:py-20 text-center lg:text-right">
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-[#0B3C5D] leading-tight">
-              المستقبل تك
-              <br />
-              للخدمات التكنولوجية
-            </h1>
+          <div className="relative z-10 px-3 py-9 min-[500px]:px-4 min-[500px]:py-12 md:px-8 md:py-16 lg:px-14 lg:py-20 text-center lg:text-right">
+            <div className="w-full max-w-3xl lg:mx-0">
+              <h1 className="mt-2 min-[500px]:mt-4 text-[20px] min-[500px]:text-[22px] md:text-2xl lg:text-3xl font-extrabold text-[#0B3C5D] leading-[1.45] min-[500px]:leading-[1.5]">
+                <span className="block min-h-[1.5em] min-[500px]:min-h-[1.7em] break-words">
+                  {typedLine1}
+                </span>
+                <span className="block min-h-[1.5em] min-[500px]:min-h-[1.7em] break-words text-[#123E63]">
+                  {typedLine2}
+                </span>
+              </h1>
 
-            <p className="mt-5 max-w-2xl text-base md:text-lg leading-8 text-[#1F1F1F] mx-auto lg:mx-0">
-              حلول متكاملة في التكنولوجيا والتسويق الرقمي وصيانة الأجهزة
-            </p>
+              <div className="mt-4 min-[500px]:mt-6 w-full max-w-2xl lg:mx-0 min-h-[64px] min-[500px]:min-h-[72px] md:min-h-[90px]">
+                <p className="text-[13px] min-[500px]:text-sm md:text-lg lg:text-xl leading-7 min-[500px]:leading-8 md:leading-9 text-[#34495E] font-medium italic opacity-90 tracking-wide break-words">
+                  {typedDesc}
+                </p>
+              </div>
 
-            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button className="rounded-full bg-[#FF7A00] px-7 py-6 text-base text-white hover:bg-[#e96f00]">
-                عرض خدماتنا
-              </Button>
+              <div className="mt-6 min-[500px]:mt-8 flex flex-col gap-3 min-[500px]:gap-4 sm:flex-row justify-center lg:justify-start items-stretch sm:items-center">
+                <div
+                  className={`w-full sm:w-auto transition-all duration-500 ${
+                    showFirstButton
+                      ? "opacity-100 translate-y-0"
+                      : "opacity-0 translate-y-4 pointer-events-none"
+                  }`}
+                >
+                  <Button
+                    asChild
+                    className="group w-full sm:w-auto h-11 min-[500px]:h-auto rounded-full bg-[#FF7A00] px-5 min-[500px]:px-8 py-2.5 min-[500px]:py-4 md:px-9 md:py-5 text-sm min-[500px]:text-base font-bold text-white shadow-md transition-all duration-300 hover:bg-[#e96f00] hover:shadow-[0_10px_25px_rgba(255,122,0,0.25)] hover:-translate-y-0.5"
+                  >
+                    <Link
+                      href="#services"
+                      className="flex items-center justify-center gap-2 w-full whitespace-nowrap"
+                    >
+                      <FiArrowLeft className="text-base min-[500px]:text-lg transition-transform duration-300 group-hover:-translate-x-1 shrink-0" />
+                      <span className="truncate">عرض خدماتنا</span>
+                    </Link>
+                  </Button>
+                </div>
 
-              <Button className="rounded-full bg-[#FF7A00] px-7 py-6 text-base text-white hover:bg-[#e96f00]">
-                تواصل معنا
-              </Button>
+                <div
+                  className={`w-full sm:w-auto transition-all duration-500 ${
+                    showSecondButton
+                      ? "opacity-100 translate-y-0"
+                      : "opacity-0 translate-y-4 pointer-events-none"
+                  }`}
+                >
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="group w-full sm:w-auto h-11 min-[500px]:h-auto rounded-full border-[#0B3C5D] px-5 min-[500px]:px-8 py-2.5 min-[500px]:py-4 md:px-9 md:py-5 text-sm min-[500px]:text-base font-bold text-[#0B3C5D] bg-white/80 shadow-sm transition-all duration-300 hover:bg-[#0B3C5D] hover:text-white hover:shadow-[0_10px_25px_rgba(11,60,93,0.15)] hover:-translate-y-0.5"
+                  >
+                    <Link
+                      href="/contact"
+                      className="flex items-center justify-center gap-2 w-full whitespace-nowrap"
+                    >
+                      <FiPhoneCall className="text-base min-[500px]:text-lg transition-transform duration-300 group-hover:scale-110 shrink-0" />
+                      <span className="truncate">تواصل معنا</span>
+                    </Link>
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
