@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FiArrowLeft, FiPhoneCall } from "react-icons/fi";
 import { useEffect, useMemo, useState } from "react";
+import { endpoints } from "@/lib/api";
 
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -27,37 +28,62 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
+type Company = {
+  name: string;
+  description: string;
+  hero_image?: string;
+};
+
 export default function Hero() {
-  const content = useMemo(
-    () => ({
-      line1: "المستقبل تك",
-      line2: "للخدمات التكنولوجية المتكاملة",
-      desc: "حلول متكاملة في التكنولوجيا والتسويق الرقمي وصيانة الأجهزة",
-    }),
-    []
-  );
-
-  const prefersReducedMotion = usePrefersReducedMotion();
-
-  const [typedLine1, setTypedLine1] = useState("");
-  const [typedLine2, setTypedLine2] = useState("");
-  const [typedDesc, setTypedDesc] = useState("");
-
+  const [company, setCompany] = useState<Company | null>(null);
+  const [typedName, setTypedName] = useState("");
+  const [typedDescription, setTypedDescription] = useState("");
   const [showFirstButton, setShowFirstButton] = useState(false);
   const [showSecondButton, setShowSecondButton] = useState(false);
 
+  const prefersReducedMotion = usePrefersReducedMotion();
+
   useEffect(() => {
+    const fetchCompany = async () => {
+      try {
+        const res = await fetch(endpoints.company, { cache: "no-store" });
+        if (!res.ok) throw new Error("Failed to fetch company");
+        const data = await res.json();
+        setCompany(data);
+      } catch (error) {
+        console.error("Error fetching company:", error);
+      }
+    };
+
+    fetchCompany();
+  }, []);
+
+  const content = useMemo(
+    () => ({
+      name: company?.name || "المستقبل تك",
+      description: company?.description || "",
+    }),
+    [company]
+  );
+
+  useEffect(() => {
+    if (!content.name && !content.description) return;
+
     if (prefersReducedMotion) {
-      setTypedLine1(content.line1);
-      setTypedLine2(content.line2);
-      setTypedDesc(content.desc);
+      setTypedName(content.name);
+      setTypedDescription(content.description);
       setShowFirstButton(true);
       setShowSecondButton(true);
       return;
     }
 
+    setTypedName("");
+    setTypedDescription("");
+    setShowFirstButton(false);
+    setShowSecondButton(false);
+
     let cancelled = false;
-    const timeouts: ReturnType<typeof setTimeout>[] = [];
+    const timeouts: NodeJS.Timeout[] = [];
 
     const typeText = (
       text: string,
@@ -86,9 +112,8 @@ export default function Hero() {
       });
 
     const startTyping = async () => {
-      await typeText(content.line1, setTypedLine1, 70);
-      await typeText(content.line2, setTypedLine2, 45);
-      await typeText(content.desc, setTypedDesc, 28);
+      await typeText(content.name, setTypedName, 60);
+      await typeText(content.description, setTypedDescription, 18);
 
       if (!cancelled) {
         setShowFirstButton(true);
@@ -109,13 +134,15 @@ export default function Hero() {
     };
   }, [content, prefersReducedMotion]);
 
+  const heroImage = company?.hero_image || "/1.jpg";
+
   return (
     <section id="hero" className="w-full overflow-x-hidden" dir="rtl">
       <div className="mt-4 w-full px-2 min-[500px]:px-3 md:mt-10 md:px-4 lg:mt-12 lg:px-6 xl:px-8">
         <div className="relative overflow-hidden rounded-[18px] min-[500px]:rounded-[22px] lg:rounded-[28px] border border-[#E5E7EB] bg-white shadow-[0_14px_40px_rgba(11,60,93,0.08)] min-h-[360px] min-[500px]:min-h-[420px] md:min-h-[500px]">
           <Image
-            src="/1.jpg"
-            alt="المستقبل تك"
+            src={heroImage}
+            alt={company?.name || "المستقبل تك"}
             fill
             priority
             className="object-cover opacity-30"
@@ -127,17 +154,14 @@ export default function Hero() {
           <div className="relative z-10 px-3 py-9 min-[500px]:px-4 min-[500px]:py-12 md:px-8 md:py-16 lg:px-14 lg:py-20 text-center lg:text-right">
             <div className="w-full max-w-3xl lg:mx-0">
               <h1 className="mt-2 min-[500px]:mt-4 text-[20px] min-[500px]:text-[22px] md:text-2xl lg:text-3xl font-extrabold text-[#0B3C5D] leading-[1.45] min-[500px]:leading-[1.5]">
-                <span className="block min-h-[1.5em] min-[500px]:min-h-[1.7em] break-words">
-                  {typedLine1}
-                </span>
-                <span className="block min-h-[1.5em] min-[500px]:min-h-[1.7em] break-words text-[#123E63]">
-                  {typedLine2}
+                <span className="block min-h-[1.5em] break-words">
+                  {typedName || " "}
                 </span>
               </h1>
 
-              <div className="mt-4 min-[500px]:mt-6 w-full max-w-2xl lg:mx-0 min-h-[64px] min-[500px]:min-h-[72px] md:min-h-[90px]">
+              <div className="mt-4 min-[500px]:mt-6 w-full max-w-2xl lg:mx-0 min-h-[90px] md:min-h-[120px]">
                 <p className="text-[13px] min-[500px]:text-sm md:text-lg lg:text-xl leading-7 min-[500px]:leading-8 md:leading-9 text-[#34495E] font-medium italic opacity-90 tracking-wide break-words">
-                  {typedDesc}
+                  {typedDescription || " "}
                 </p>
               </div>
 
@@ -176,7 +200,7 @@ export default function Hero() {
                     className="group w-full sm:w-auto h-11 min-[500px]:h-auto rounded-full border-[#0B3C5D] px-5 min-[500px]:px-8 py-2.5 min-[500px]:py-4 md:px-9 md:py-5 text-sm min-[500px]:text-base font-bold text-[#0B3C5D] bg-white/80 shadow-sm transition-all duration-300 hover:bg-[#0B3C5D] hover:text-white hover:shadow-[0_10px_25px_rgba(11,60,93,0.15)] hover:-translate-y-0.5"
                   >
                     <Link
-                      href="/contact"
+                      href="#contact"
                       className="flex items-center justify-center gap-2 w-full whitespace-nowrap"
                     >
                       <FiPhoneCall className="text-base min-[500px]:text-lg transition-transform duration-300 group-hover:scale-110 shrink-0" />
