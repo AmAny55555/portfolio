@@ -5,7 +5,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FiArrowLeft, FiPhoneCall } from "react-icons/fi";
 import { useEffect, useMemo, useState } from "react";
-import { endpoints } from "@/lib/api";
+import { getCompany } from "./service";
+import type { Company } from "./types";
 
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -28,12 +29,6 @@ function usePrefersReducedMotion() {
   return reduced;
 }
 
-type Company = {
-  name: string;
-  description: string;
-  hero_image?: string;
-};
-
 export default function Hero() {
   const [company, setCompany] = useState<Company | null>(null);
   const [typedName, setTypedName] = useState("");
@@ -45,14 +40,8 @@ export default function Hero() {
 
   useEffect(() => {
     const fetchCompany = async () => {
-      try {
-        const res = await fetch(endpoints.company, { cache: "no-store" });
-        if (!res.ok) throw new Error("Failed to fetch company");
-        const data = await res.json();
-        setCompany(data);
-      } catch (error) {
-        console.error("Error fetching company:", error);
-      }
+      const data = await getCompany();
+      setCompany(data);
     };
 
     fetchCompany();

@@ -9,11 +9,9 @@ import {
   Headphones,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-
-type Feature = {
-  id: number;
-  title: string;
-};
+import { motion } from "framer-motion";
+import type { Feature } from "./types";
+import { getFeatures } from "./service";
 
 export default function Features() {
   const [features, setFeatures] = useState<Feature[]>([]);
@@ -22,13 +20,8 @@ export default function Features() {
 
   useEffect(() => {
     const fetchFeatures = async () => {
-      try {
-        const res = await fetch("http://127.0.0.1:9000/api/features");
-        const data = await res.json();
-        setFeatures(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error("Error fetching features:", error);
-      }
+      const data = await getFeatures();
+      setFeatures(data);
     };
 
     fetchFeatures();
@@ -52,20 +45,28 @@ export default function Features() {
             const Icon = icons[index % icons.length];
 
             return (
-              <Card
+              <motion.div
                 key={feature.id}
-                className="group rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_6px_20px_rgba(11,60,93,0.08)] hover:shadow-[0_14px_40px_rgba(11,60,93,0.15)] hover:-translate-y-1.5 transition-all duration-300"
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{
+                  duration: 0.8,
+                  delay: index * 0.25,
+                }}
               >
-                <CardContent className="p-6 flex flex-col items-center text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-[#F5F7FA] flex items-center justify-center mb-4 transition group-hover:bg-[#FF7A00]/10">
-                    <Icon className="w-7 h-7 text-[#FF7A00] transition group-hover:scale-110" />
-                  </div>
+                <Card className="group rounded-2xl border border-[#E5E7EB] bg-white shadow-[0_6px_20px_rgba(11,60,93,0.08)] hover:shadow-[0_14px_40px_rgba(11,60,93,0.15)] hover:-translate-y-1.5 transition-all duration-300">
+                  <CardContent className="p-6 flex flex-col items-center text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-[#F5F7FA] flex items-center justify-center mb-4 transition group-hover:bg-[#FF7A00]/10">
+                      <Icon className="w-7 h-7 text-[#FF7A00] transition group-hover:scale-110" />
+                    </div>
 
-                  <h3 className="text-lg font-bold text-[#0B3C5D]">
-                    {feature.title}
-                  </h3>
-                </CardContent>
-              </Card>
+                    <h3 className="text-lg font-bold text-[#0B3C5D]">
+                      {feature.title}
+                    </h3>
+                  </CardContent>
+                </Card>
+              </motion.div>
             );
           })}
         </div>
